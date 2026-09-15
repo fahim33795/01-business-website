@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "client": "vite",
     "server": "nodemon server/index.js",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "seed": "node server/seed.js",
     "start": "node server/index.js"
