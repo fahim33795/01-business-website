@@ -613,9 +613,11 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       const newRev = {
         id: Date.now(),
         product_id: reqBody.product_id,
-        customer_name: reqBody.customer_name || 'Customer',
+        product_name: reqBody.product_name || 'Syvora Product',
+        user_name: reqBody.customer_name || reqBody.user_name || 'Customer',
         rating: Number(reqBody.rating) || 5,
         comment: reqBody.comment || '',
+        verified_purchase: 1,
         status: 'approved',
         created_at: new Date().toISOString()
       };

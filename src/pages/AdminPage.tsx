@@ -1,4 +1,4 @@
-import { useState, useEffect, FC, FormEvent } from 'react';
+import React, { useState, useEffect, FC, FormEvent } from 'react';
 import {
   DollarSign, ShoppingBag, Users, User, Package, AlertTriangle, Plus, Edit, Edit3, Trash2, Printer, Eye, Check, X, Tag, RefreshCw, FolderTree, Ticket, Boxes, MessageSquare, MapPin, Phone, Mail, Truck, CreditCard, Save, FileText, Shield, Lock, ArrowLeft, Key
 } from 'lucide-react';
