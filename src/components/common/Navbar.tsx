@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Heart, User, Search, Menu, X, ChevronDown, Sparkles, LogOut, PackageCheck } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
-import { useWishlist } from '../../context/WishlistContext';
-import { useAuth } from '../../context/AuthContext';
-import { useCurrency } from '../../context/CurrencyContext';
-import { api } from '../../services/api';
-import { Product, Category } from '../../types';
-import { parseProductImages, handleImageError } from '../../utils/imageUtils';
+import { useCart } from '../../context/CartContext.tsx';
+import { useWishlist } from '../../context/WishlistContext.tsx';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { useCurrency } from '../../context/CurrencyContext.tsx';
+import { api } from '../../services/api.ts';
+import { Product, Category } from '../../types/index.ts';
+import { parseProductImages, handleImageError } from '../../utils/imageUtils.ts';
 
 interface NavbarProps {
   onNavigate: (page: string, param?: string) => void;
@@ -29,7 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api.getCategories().then(res => {
+    api.getCategories().then((res: any) => {
       if (res.success) setCategories(res.categories || []);
     }).catch(() => {});
   }, []);
@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
       const timer = setTimeout(() => {
-        api.searchSuggestions(searchQuery).then(res => {
+        api.searchSuggestions(searchQuery).then((res: any) => {
           if (res.success) setSuggestions(res.suggestions || []);
         });
       }, 300);

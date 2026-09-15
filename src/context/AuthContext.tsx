@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types';
-import { api, getAuthToken, setAuthToken, removeAuthToken } from '../services/api';
-import { useToast } from './ToastContext';
+import { User } from '../types/index.ts';
+import { api, getAuthToken, setAuthToken, removeAuthToken } from '../services/api.ts';
+import { useToast } from './ToastContext.tsx';
 
 interface AuthContextType {
   user: User | null;
@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const token = getAuthToken();
     if (token) {
       api.getProfile()
-        .then(res => {
+        .then((res: any) => {
           if (res.success && res.user) {
             setUser(res.user);
           }
