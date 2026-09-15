@@ -335,7 +335,17 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       return { success: true, product: product || MOCK_PRODUCTS[0] } as unknown as T;
     }
     if (url.pathname === '/auth/profile') {
-      return { success: true, user: { name: 'Demo User', email: 'user@syvora.com', role: 'customer' } } as unknown as T;
+      const token = getAuthToken();
+      const isAdminToken = token ? token.includes('admin') : true;
+      return {
+        success: true,
+        user: {
+          id: 1,
+          name: isAdminToken ? 'Syvora Administrator' : 'Demo Customer',
+          email: isAdminToken ? 'admin@syvora.com' : 'user@syvora.com',
+          role: isAdminToken ? 'admin' : 'customer'
+        }
+      } as unknown as T;
     }
     if (url.pathname === '/orders/my-orders') {
       return { success: true, orders: [] } as unknown as T;
@@ -353,7 +363,24 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       return { success: true, valid: true, discount: 200, message: 'Coupon applied successfully!' } as unknown as T;
     }
     if (url.pathname === '/auth/login') {
-      return { success: true, token: 'demo_token_123', user: { name: 'Demo User', email: 'user@syvora.com', role: 'customer' } } as unknown as T;
+      let reqBody: any = {};
+      try {
+        if (options.body) reqBody = JSON.parse(options.body as string);
+      } catch (_e) {}
+
+      const email = (reqBody.email || '').toLowerCase();
+      const isAdminAttempt = email.includes('admin') || email === 'admin' || !email;
+
+      return {
+        success: true,
+        token: isAdminAttempt ? 'demo_admin_token_123' : 'demo_customer_token_123',
+        user: {
+          id: 1,
+          name: isAdminAttempt ? 'Syvora Administrator' : 'Demo Customer',
+          email: isAdminAttempt ? 'admin@syvora.com' : 'customer@syvora.com',
+          role: isAdminAttempt ? 'admin' : 'customer'
+        }
+      } as unknown as T;
     }
   }
 
