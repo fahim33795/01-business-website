@@ -8,6 +8,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { ReviewSection } from '../components/store/ReviewSection';
 import { ProductCard } from '../components/store/ProductCard';
 import { QuickViewModal } from '../components/store/QuickViewModal';
+import { parseProductImages } from '../utils/imageUtils';
 
 interface ProductDetailProps {
   slug: string;
@@ -33,8 +34,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onNavigate }
       .then(res => {
         if (res.success && res.product) {
           setProduct(res.product);
-          const imgs = res.product.images || [];
-          setSelectedImage(imgs[0] || '');
+          const imgs = parseProductImages(res.product.images);
+          setSelectedImage(imgs[0]);
           if (res.product.variants && res.product.variants.length) {
             setSelectedVariant(res.product.variants[0]);
           } else {
@@ -67,7 +68,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onNavigate }
     );
   }
 
-  const images = Array.isArray(product.images) ? product.images : [product.images];
+  const images = parseProductImages(product.images);
   const isWishlisted = wishlist.some(p => p.id === product.id);
   const activePrice = selectedVariant?.price || product.sale_price || product.price;
 

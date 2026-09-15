@@ -4,6 +4,7 @@ import { Product, Variant } from '../../types';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { parseProductImages } from '../../utils/imageUtils';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -18,8 +19,8 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
   const { addToCart } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
 
-  const images = Array.isArray(product.images) ? product.images : [product.images];
-  const [selectedImage, setSelectedImage] = useState<string>(images[0] || '');
+  const images = parseProductImages(product.images);
+  const [selectedImage, setSelectedImage] = useState<string>(images[0]);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
     product.variants && product.variants.length ? product.variants[0] : null
   );

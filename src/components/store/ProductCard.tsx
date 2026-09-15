@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import { parseProductImages } from '../../utils/imageUtils';
 
 interface ProductCardProps {
   product: Product;
@@ -17,8 +18,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate, o
   const { addToCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
 
-  const images = Array.isArray(product.images) ? product.images : [product.images];
-  const primaryImage = images[0] || 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&q=80';
+  const images = parseProductImages(product.images);
+  const primaryImage = images[0];
   const secondaryImage = images[1] || primaryImage;
 
   const isWishlisted = wishlist.some(p => p.id === product.id);
