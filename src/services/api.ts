@@ -454,3 +454,5 @@ export const api = {
   getBanners: () => request<any>('/banners'),
 };
 
+export default api;
+

@@ -5,7 +5,8 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { api } from '../../services/api';
-import { Product } from '../../types';
+import { Product, Category } from '../../types';
+import { parseProductImages, handleImageError } from '../../utils/imageUtils';
 
 interface NavbarProps {
   onNavigate: (page: string, param?: string) => void;
@@ -21,9 +22,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -234,7 +235,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
                           }}
                           className="flex items-center gap-3 p-2 hover:bg-syvora-champagne/50 rounded-lg cursor-pointer transition-colors"
                         >
-                          <img src={s.image} alt={s.name} className="w-10 h-10 object-cover rounded-md" />
+                          <img
+                            src={parseProductImages(s.images)[0]}
+                            alt={s.name}
+                            className="w-10 h-10 object-cover rounded-md"
+                            onError={handleImageError}
+                          />
                           <div className="flex-1 min-w-0">
                             <h5 className="text-xs font-medium text-syvora-charcoal truncate">{s.name}</h5>
                             <span className="text-[10px] text-syvora-muted">{s.brand}</span>
