@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FC, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, FC, FormEvent } from 'react';
 import { ShoppingBag, Heart, User, Search, Menu, X, ChevronDown, Sparkles, LogOut, PackageCheck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
