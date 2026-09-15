@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { ProductCard } from '../components/store/ProductCard';
 import { QuickViewModal } from '../components/store/QuickViewModal';
 import { useCurrency } from '../context/CurrencyContext';
+import { handleImageError } from '../utils/imageUtils';
 
 interface HomeProps {
   onNavigate: (page: string, param?: string) => void;
@@ -42,6 +43,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1600&q=80"
             alt="Syvora Beauty Collection"
             className="w-full h-full object-cover opacity-90 scale-105 animate-pulse-slow"
+            onError={handleImageError}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-syvora-ivory via-syvora-ivory/80 to-transparent" />
         </div>
@@ -98,6 +100,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                 src={cat.image || 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80'}
                 alt={cat.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                onError={handleImageError}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-syvora-charcoal/90 via-syvora-charcoal/30 to-transparent transition-opacity group-hover:opacity-90" />
               <div className="absolute bottom-6 left-6 right-6 text-syvora-ivory space-y-1">

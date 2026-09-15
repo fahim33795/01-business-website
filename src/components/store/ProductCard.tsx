@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
-import { parseProductImages } from '../../utils/imageUtils';
+import { parseProductImages, handleImageError } from '../../utils/imageUtils';
 
 interface ProductCardProps {
   product: Product;
@@ -40,6 +40,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate, o
           src={isHovered ? secondaryImage : primaryImage}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={handleImageError}
         />
 
         {/* Badges */}

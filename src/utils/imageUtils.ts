@@ -1,35 +1,35 @@
+export const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80';
+
 export function parseProductImages(imagesField: any): string[] {
-  const fallback = 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80';
-  if (!imagesField) return [fallback];
+  if (!imagesField) return [DEFAULT_FALLBACK_IMAGE];
 
-  if (Array.isArray(imagesField)) {
-    const validArray = imagesField
-      .map((item: any) => (typeof item === 'string' ? item.trim() : ''))
-      .filter((item: string) => item.length > 0);
-    return validArray.length > 0 ? validArray : [fallback];
-  }
-
-  if (typeof imagesField === 'string') {
-    const trimmed = imagesField.trim();
-    if (trimmed.startsWith('[')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          const validParsed = parsed
-            .map((item: any) => (typeof item === 'string' ? item.trim() : ''))
-            .filter((item: string) => item.length > 0);
-          if (validParsed.length > 0) return validParsed;
+  function extractUrls(input: any): string[] {
+    if (!input) return [];
+    if (Array.isArray(input)) {
+      return input.flatMap(extractUrls);
+    }
+    if (typeof input === 'string') {
+      let str = input.trim();
+      if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'"))) {
+        str = str.slice(1, -1).trim();
+      }
+      if (str.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(str);
+          return extractUrls(parsed);
+        } catch (_e) {
+          // ignore
         }
-      } catch (_e) {
-        // failed JSON parse
+      }
+      if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('/') || str.startsWith('data:')) {
+        return [str];
       }
     }
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/') || trimmed.startsWith('data:')) {
-      return [trimmed];
-    }
+    return [];
   }
 
-  return [fallback];
+  const results = extractUrls(imagesField);
+  return results.length > 0 ? results : [DEFAULT_FALLBACK_IMAGE];
 }
 
 export function parseJsonField<T>(field: any, fallback: T): T {
@@ -43,4 +43,11 @@ export function parseJsonField<T>(field: any, fallback: T): T {
     }
   }
   return fallback;
+}
+
+export function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
+  const target = e.currentTarget;
+  if (target.src !== DEFAULT_FALLBACK_IMAGE) {
+    target.src = DEFAULT_FALLBACK_IMAGE;
+  }
 }

@@ -4,7 +4,7 @@ import { Product, Variant } from '../../types';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
-import { parseProductImages } from '../../utils/imageUtils';
+import { parseProductImages, handleImageError } from '../../utils/imageUtils';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -59,6 +59,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
                 src={selectedImage || images[0]}
                 alt={product.name}
                 className="w-full h-full object-cover"
+                onError={handleImageError}
               />
             </div>
 

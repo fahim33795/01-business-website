@@ -8,7 +8,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { ReviewSection } from '../components/store/ReviewSection';
 import { ProductCard } from '../components/store/ProductCard';
 import { QuickViewModal } from '../components/store/QuickViewModal';
-import { parseProductImages } from '../utils/imageUtils';
+import { parseProductImages, handleImageError } from '../utils/imageUtils';
 
 interface ProductDetailProps {
   slug: string;
@@ -60,9 +60,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onNavigate }
         <h2 className="font-serif text-2xl font-bold text-syvora-charcoal">Product Not Found</h2>
         <button
           onClick={() => onNavigate('shop')}
-          className="bg-syvora-charcoal text-white text-xs px-6 py-3 rounded-xl font-bold uppercase tracking-wider"
+          className="bg-syvora-charcoal text-syvora-ivory text-xs px-6 py-3 rounded-xl font-bold uppercase tracking-wider"
         >
-          Return to Shop
+          Back To Shop
         </button>
       </div>
     );
@@ -88,6 +88,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onNavigate }
               src={selectedImage || images[0]}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={handleImageError}
             />
           </div>
 
