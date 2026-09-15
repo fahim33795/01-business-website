@@ -141,7 +141,25 @@ export const CheckoutSteps: React.FC<CheckoutStepsProps> = ({ onOrderSuccess, on
 
       const res = await api.createOrder(orderPayload);
 
-      if (res.success && res.order) {
+      if (res.success) {
+        const orderData = res.order || {
+          id: Date.now(),
+          order_number: res.orderNumber || `SYV-${Date.now()}`,
+          customer_name: customerName,
+          customer_email: emailToUse,
+          customer_phone: customerPhone,
+          shipping_address: { country, state, city, full_address: fullAddress },
+          delivery_method: deliveryMethod,
+          payment_method: paymentMethod,
+          payment_status: 'pending',
+          order_status: 'pending',
+          items: cart,
+          subtotal,
+          shipping_fee: shippingFee,
+          total: grandTotal,
+          created_at: new Date().toISOString()
+        };
+
         // Trigger celebratory confetti burst!
         confetti({
           particleCount: 100,
@@ -151,7 +169,7 @@ export const CheckoutSteps: React.FC<CheckoutStepsProps> = ({ onOrderSuccess, on
 
         clearCart();
         showToast('Your order has been placed successfully!', 'success');
-        onOrderSuccess(res.order);
+        onOrderSuccess(orderData);
       }
     } catch (err: any) {
       showToast(err.message || 'Failed to process order.', 'error');

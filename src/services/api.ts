@@ -289,11 +289,102 @@ const MOCK_PRODUCTS = [
   }
 ];
 
+const MOCK_ORDERS = [
+  {
+    id: 1,
+    order_number: 'SYV-849201',
+    customer_name: 'Tanvir Hossain',
+    customer_email: 'tanvir@gmail.com',
+    customer_phone: '01711223344',
+    shipping_address: { country: 'Bangladesh', state: 'Dhaka', city: 'Uttara', full_address: 'House 12, Road 4, Sector 3' },
+    delivery_method: 'Inside Dhaka',
+    payment_method: 'bkash',
+    payment_status: 'paid',
+    order_status: 'delivered',
+    items: [
+      { id: 1, name: 'Syvora Radiant Glow Hyaluronic Serum', quantity: 1, price: 1450 }
+    ],
+    subtotal: 1450,
+    shipping_fee: 80,
+    total: 1530,
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString()
+  },
+  {
+    id: 2,
+    order_number: 'SYV-950182',
+    customer_name: 'Nusrat Jahan',
+    customer_email: 'nusrat@yahoo.com',
+    customer_phone: '01899887766',
+    shipping_address: { country: 'Bangladesh', state: 'Chittagong', city: 'Agrabad', full_address: 'CDA Avenue 45' },
+    delivery_method: 'Outside Dhaka',
+    payment_method: 'nagad',
+    payment_status: 'pending',
+    order_status: 'processing',
+    items: [
+      { id: 3, name: 'Velvet Matte Liquid Lipstick', quantity: 2, price: 850 }
+    ],
+    subtotal: 1700,
+    shipping_fee: 130,
+    total: 1830,
+    created_at: new Date(Date.now() - 86400000).toISOString()
+  }
+];
+
+const MOCK_CUSTOMERS = [
+  { id: 1, name: 'Tanvir Hossain', email: 'tanvir@gmail.com', phone: '01711223344', total_orders: 5, total_spent: 8500, created_at: '2026-01-15' },
+  { id: 2, name: 'Nusrat Jahan', email: 'nusrat@yahoo.com', phone: '01899887766', total_orders: 2, total_spent: 3400, created_at: '2026-02-10' }
+];
+
+const MOCK_COUPONS = [
+  { id: 1, code: 'WELCOME10', type: 'percent', value: 10, min_spend: 1000, max_discount: 500, status: 'active' },
+  { id: 2, code: 'SYVORA200', type: 'fixed', value: 200, min_spend: 1500, max_discount: 200, status: 'active' }
+];
+
+const MOCK_REVIEWS = [
+  { id: 1, product_id: 1, product_name: 'Syvora Radiant Glow Hyaluronic Serum', customer_name: 'Ayesha Rahman', rating: 5, comment: 'Amazing serum! Plumps skin instantly.', status: 'approved', created_at: '2026-03-01' }
+];
+
+const MOCK_INVENTORY = MOCK_PRODUCTS.map(p => ({
+  id: p.id,
+  name: p.name,
+  sku: p.sku,
+  stock: p.stock,
+  cost_price: p.cost_price,
+  price: p.price
+}));
+
 function getMockFallback<T>(endpoint: string, options: RequestInit): T {
   const method = (options.method || 'GET').toUpperCase();
   const url = new URL(endpoint, 'http://localhost');
 
   if (method === 'GET') {
+    if (url.pathname === '/admin/stats') {
+      return {
+        success: true,
+        stats: {
+          totalSales: 245800,
+          totalOrders: 142,
+          totalCustomers: 98,
+          totalProducts: MOCK_PRODUCTS.length,
+          lowStockCount: MOCK_PRODUCTS.filter(p => p.stock < 10).length
+        }
+      } as unknown as T;
+    }
+    if (url.pathname === '/orders') {
+      return { success: true, orders: MOCK_ORDERS } as unknown as T;
+    }
+    if (url.pathname === '/admin/customers') {
+      return { success: true, customers: MOCK_CUSTOMERS } as unknown as T;
+    }
+    if (url.pathname === '/coupons') {
+      return { success: true, coupons: MOCK_COUPONS } as unknown as T;
+    }
+    if (url.pathname === '/reviews') {
+      return { success: true, reviews: MOCK_REVIEWS } as unknown as T;
+    }
+    if (url.pathname === '/admin/inventory') {
+      return { success: true, inventory: MOCK_INVENTORY } as unknown as T;
+    }
     if (url.pathname === '/categories') {
       return { success: true, categories: MOCK_CATEGORIES } as unknown as T;
     }
@@ -348,16 +439,57 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       } as unknown as T;
     }
     if (url.pathname === '/orders/my-orders') {
-      return { success: true, orders: [] } as unknown as T;
+      return { success: true, orders: MOCK_ORDERS } as unknown as T;
     }
     if (url.pathname === '/settings') {
-      return { success: true, settings: { site_name: 'Syvora Beauty', currency: 'BDT', currency_symbol: '৳' } } as unknown as T;
+      return {
+        success: true,
+        settings: {
+          storeName: 'Syvora Beauty & Lifestyle',
+          storeEmail: 'contact@syvora.com',
+          usdToBdtRate: 120,
+          freeShippingThresholdUSD: 75,
+          freeShippingThresholdBDT: 3000,
+          announcementBarText: '✨ Free Shipping on Orders Over $75 / ৳3000 | Code WELCOME10'
+        }
+      } as unknown as T;
     }
   }
 
   if (method === 'POST') {
     if (url.pathname === '/orders') {
-      return { success: true, orderNumber: `SYV-${Date.now()}`, message: 'Order placed successfully!' } as unknown as T;
+      let reqBody: any = {};
+      try {
+        if (options.body) reqBody = JSON.parse(options.body as string);
+      } catch (_e) {}
+
+      const orderNum = `SYV-${Math.floor(100000 + Math.random() * 900000)}`;
+      const newOrder = {
+        id: Date.now(),
+        order_number: orderNum,
+        customer_name: reqBody.customer_name || 'Customer',
+        customer_email: reqBody.customer_email || 'customer@syvora.com',
+        customer_phone: reqBody.customer_phone || '',
+        shipping_address: reqBody.shipping_address || {},
+        delivery_method: reqBody.delivery_method || 'Inside Dhaka',
+        payment_method: reqBody.payment_method || 'bkash',
+        payment_status: 'pending',
+        order_status: 'pending',
+        items: reqBody.items || [],
+        subtotal: 1500,
+        shipping_fee: reqBody.delivery_method === 'Outside Dhaka' ? 130 : 80,
+        total: 1580,
+        created_at: new Date().toISOString()
+      };
+
+      MOCK_ORDERS.unshift(newOrder);
+
+      return {
+        success: true,
+        orderNumber: orderNum,
+        order: newOrder,
+        message: 'Order placed successfully!'
+      } as unknown as T;
     }
     if (url.pathname === '/coupons/validate') {
       return { success: true, valid: true, discount: 200, message: 'Coupon applied successfully!' } as unknown as T;
