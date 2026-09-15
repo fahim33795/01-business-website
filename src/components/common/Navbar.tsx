@@ -70,9 +70,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
   return (
     <header className="sticky top-0 z-40 bg-syvora-ivory/95 backdrop-blur-md border-b border-syvora-border transition-all">
       {/* Top Announcement Bar */}
-      <div className="bg-syvora-charcoal text-syvora-ivory text-xs py-2 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-syvora-rose animate-pulse" />
-        <span>🇧🇩 সারা বাংলাদেশে ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি | কুপন কোড: <strong>WELCOME10</strong> (১০% ডিসকাউন্ট)</span>
+      <div className="bg-syvora-charcoal text-syvora-ivory text-xs py-2 px-4 font-medium tracking-wide flex items-center justify-between gap-2">
+        <div className="flex items-center justify-center gap-2 flex-1 text-center">
+          <Sparkles className="w-3.5 h-3.5 text-syvora-rose animate-pulse" />
+          <span>🇧🇩 সারা বাংলাদেশে ৩,০০০ টাকার অর্ডারে ফ্রি ডেলিভারি | কুপন কোড: <strong>WELCOME10</strong> (১০% ডিসকাউন্ট)</span>
+        </div>
+        <button
+          onClick={() => onNavigate('admin')}
+          className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-syvora-rose hover:text-white px-3 py-0.5 rounded-full bg-white/10 hover:bg-syvora-rose transition-all"
+        >
+          ⚙️ Admin Panel
+        </button>
       </div>
 
       {/* Main Navigation Bar */}
@@ -398,6 +406,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
               className="text-left py-2 hover:text-syvora-rose"
             >
               FAQ & Shipping
+            </button>
+            <button
+              onClick={() => { onNavigate('admin'); setIsMobileMenuOpen(false); }}
+              className="text-left py-2 text-syvora-rose font-bold flex items-center gap-1.5 border-t border-syvora-border pt-3 mt-1"
+            >
+              ⚙️ Admin Dashboard
             </button>
           </div>
         </div>
