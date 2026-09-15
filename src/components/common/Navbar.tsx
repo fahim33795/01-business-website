@@ -31,7 +31,7 @@ export const Navbar: FC<NavbarProps> = ({ onNavigate, currentPage }) => {
   useEffect(() => {
     api.getCategories().then((res: any) => {
       if (res.success) setCategories(res.categories || []);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Debounced search
@@ -113,18 +113,16 @@ export const Navbar: FC<NavbarProps> = ({ onNavigate, currentPage }) => {
           <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium tracking-wide text-syvora-charcoal">
             <button
               onClick={() => onNavigate('home')}
-              className={`hover:text-syvora-rose transition-colors py-2 relative ${
-                currentPage === 'home' ? 'text-syvora-rose font-semibold border-b-2 border-syvora-rose' : ''
-              }`}
+              className={`hover:text-syvora-rose transition-colors py-2 relative ${currentPage === 'home' ? 'text-syvora-rose font-semibold border-b-2 border-syvora-rose' : ''
+                }`}
             >
               Home
             </button>
 
             <button
               onClick={() => onNavigate('shop')}
-              className={`hover:text-syvora-rose transition-colors py-2 relative ${
-                currentPage === 'shop' ? 'text-syvora-rose font-semibold border-b-2 border-syvora-rose' : ''
-              }`}
+              className={`hover:text-syvora-rose transition-colors py-2 relative ${currentPage === 'shop' ? 'text-syvora-rose font-semibold border-b-2 border-syvora-rose' : ''
+                }`}
             >
               Shop
             </button>
@@ -166,18 +164,16 @@ export const Navbar: FC<NavbarProps> = ({ onNavigate, currentPage }) => {
 
             <button
               onClick={() => onNavigate('about')}
-              className={`hover:text-syvora-rose transition-colors py-2 ${
-                currentPage === 'about' ? 'text-syvora-rose font-semibold' : ''
-              }`}
+              className={`hover:text-syvora-rose transition-colors py-2 ${currentPage === 'about' ? 'text-syvora-rose font-semibold' : ''
+                }`}
             >
               About Us
             </button>
 
             <button
               onClick={() => onNavigate('contact')}
-              className={`hover:text-syvora-rose transition-colors py-2 ${
-                currentPage === 'contact' ? 'text-syvora-rose font-semibold' : ''
-              }`}
+              className={`hover:text-syvora-rose transition-colors py-2 ${currentPage === 'contact' ? 'text-syvora-rose font-semibold' : ''
+                }`}
             >
               Contact
             </button>
