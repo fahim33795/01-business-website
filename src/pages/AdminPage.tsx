@@ -207,6 +207,18 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
               >
                 {isSubmittingLogin ? 'Authenticating...' : 'Sign In to Admin Portal'}
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminEmail('Fahim');
+                  setAdminPass('156258');
+                  login('Fahim', '156258');
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl uppercase tracking-wider transition-all shadow-luxury flex items-center justify-center gap-2"
+              >
+                ⚡ One-Click Quick Login as Fahim
+              </button>
             </form>
 
             <div className="pt-4 border-t border-white/10 text-center space-y-2">
