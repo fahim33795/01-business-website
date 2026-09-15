@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, FC, FormEvent } from 'react';
 import { ShoppingBag, Heart, User, Search, Menu, X, ChevronDown, Sparkles, LogOut, PackageCheck } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -13,7 +13,7 @@ interface NavbarProps {
   currentPage: string;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
+export const Navbar: FC<NavbarProps> = ({ onNavigate, currentPage }) => {
   const { itemCount, setIsCartOpen } = useCart();
   const { wishlist } = useWishlist();
   const { user, isAdmin, logout } = useAuth();
@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPage }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       onNavigate('shop', `search=${encodeURIComponent(searchQuery.trim())}`);

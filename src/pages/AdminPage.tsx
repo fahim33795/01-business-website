@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FC, FormEvent } from 'react';
 import {
   DollarSign, ShoppingBag, Users, User, Package, AlertTriangle, Plus, Edit, Edit3, Trash2, Printer, Eye, Check, X, Tag, RefreshCw, FolderTree, Ticket, Boxes, MessageSquare, MapPin, Phone, Mail, Truck, CreditCard, Save, FileText, Shield, Lock, ArrowLeft, Key
 } from 'lucide-react';
@@ -15,7 +15,7 @@ interface AdminPageProps {
   onNavigateStore: () => void;
 }
 
-export const AdminPage: React.FC<AdminPageProps> = ({ onNavigateStore }) => {
+export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
   const { user, isAdmin, login } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const { showToast } = useToast();
@@ -127,7 +127,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigateStore }) => {
     }
   }, [isAdmin]);
 
-  const handleAdminLoginSubmit = async (e: React.FormEvent) => {
+  const handleAdminLoginSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setIsSubmittingLogin(true);
