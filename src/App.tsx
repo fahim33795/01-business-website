@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { ToastProvider } from './context/ToastContext.tsx';
-import { CurrencyProvider } from './context/CurrencyContext.tsx';
-import { AuthProvider } from './context/AuthContext.tsx';
-import { CartProvider } from './context/CartContext.tsx';
-import { WishlistProvider } from './context/WishlistContext.tsx';
+import { ToastProvider } from './context/ToastContext';
+import { CurrencyProvider } from './context/CurrencyContext';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 
-import { Navbar } from './components/common/Navbar.tsx';
-import { Footer } from './components/common/Footer.tsx';
-import { CartDrawer } from './components/store/CartDrawer.tsx';
+import { Navbar } from './components/common/Navbar';
+import { Footer } from './components/common/Footer';
+import { CartDrawer } from './components/store/CartDrawer';
 
-import { Home } from './pages/Home.tsx';
-import { Shop } from './pages/Shop.tsx';
-import { ProductDetail } from './pages/ProductDetail.tsx';
-import { CheckoutSteps } from './components/checkout/CheckoutSteps.tsx';
-import { OrderSuccessPage } from './pages/OrderSuccessPage.tsx';
-import { OrderTrackingPage } from './pages/OrderTrackingPage.tsx';
-import { WishlistPage } from './pages/WishlistPage.tsx';
-import { ContactPage } from './pages/ContactPage.tsx';
-import { FAQPage } from './pages/FAQPage.tsx';
-import { AboutPage } from './pages/AboutPage.tsx';
-import { AccountPage } from './pages/AccountPage.tsx';
-import { AdminPage } from './pages/AdminPage.tsx';
-import { Order } from './types/index.ts';
+import { Home } from './pages/Home';
+import { Shop } from './pages/Shop';
+import { ProductDetail } from './pages/ProductDetail';
+import { CheckoutSteps } from './components/checkout/CheckoutSteps';
+import { OrderSuccessPage } from './pages/OrderSuccessPage';
+import { OrderTrackingPage } from './pages/OrderTrackingPage';
+import { WishlistPage } from './pages/WishlistPage';
+import { ContactPage } from './pages/ContactPage';
+import { FAQPage } from './pages/FAQPage';
+import { AboutPage } from './pages/AboutPage';
+import { AccountPage } from './pages/AccountPage';
+import { AdminPage } from './pages/AdminPage';
+import { Order } from './types';
 
 export const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<string>(() => {

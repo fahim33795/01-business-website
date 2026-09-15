@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Heart, User, Search, Menu, X, ChevronDown, Sparkles, LogOut, PackageCheck } from 'lucide-react';
-import { useCart } from '../../context/CartContext.tsx';
-import { useWishlist } from '../../context/WishlistContext.tsx';
-import { useAuth } from '../../context/AuthContext.tsx';
-import { useCurrency } from '../../context/CurrencyContext.tsx';
-import { api } from '../../services/api.ts';
-import { Product, Category } from '../../types/index.ts';
-import { parseProductImages, handleImageError } from '../../utils/imageUtils.ts';
+import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
+import { useAuth } from '../../context/AuthContext';
+import { useCurrency } from '../../context/CurrencyContext';
+import { api } from '../../services/api';
+import { Product, Category } from '../../types';
+import { parseProductImages, handleImageError } from '../../utils/imageUtils';
 
 interface NavbarProps {
   onNavigate: (page: string, param?: string) => void;

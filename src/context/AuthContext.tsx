@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types/index.ts';
-import { api, getAuthToken, setAuthToken, removeAuthToken } from '../services/api.ts';
-import { useToast } from './ToastContext.tsx';
+import { User } from '../types';
+import { api, getAuthToken, setAuthToken, removeAuthToken } from '../services/api';
+import { useToast } from './ToastContext';
 
 interface AuthContextType {
   user: User | null;

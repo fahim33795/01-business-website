@@ -12,8 +12,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
-    /* Relax strict rules to eliminate IDE linter errors */
     "strict": false,
     "noImplicitAny": false,
     "noUnusedLocals": false,

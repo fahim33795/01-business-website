@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product } from '../types/index.ts';
-import { useToast } from './ToastContext.tsx';
-import { useCart } from './CartContext.tsx';
+import { Product } from '../types';
+import { useToast } from './ToastContext';
+import { useCart } from './CartContext';
 
 interface WishlistContextType {
   wishlist: Product[];

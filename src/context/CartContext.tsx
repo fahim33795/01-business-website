@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CartItem, Product, Variant, Coupon } from '../types/index.ts';
-import { useToast } from './ToastContext.tsx';
-import { api } from '../services/api.ts';
+import { CartItem, Product, Variant, Coupon } from '../types';
+import { useToast } from './ToastContext';
+import { api } from '../services/api';
 
 interface CartContextType {
   cart: CartItem[];
