@@ -341,8 +341,8 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
         success: true,
         user: {
           id: 1,
-          name: isAdminToken ? 'Syvora Administrator' : 'Demo Customer',
-          email: isAdminToken ? 'admin@syvora.com' : 'user@syvora.com',
+          name: isAdminToken ? 'Fahim' : 'Demo Customer',
+          email: isAdminToken ? 'fahim@syvora.com' : 'user@syvora.com',
           role: isAdminToken ? 'admin' : 'customer'
         }
       } as unknown as T;
@@ -368,16 +368,16 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
         if (options.body) reqBody = JSON.parse(options.body as string);
       } catch (_e) {}
 
-      const email = (reqBody.email || '').toLowerCase();
-      const isAdminAttempt = email.includes('admin') || email === 'admin' || !email;
+      const email = (reqBody.email || reqBody.username || '').toLowerCase().trim();
+      const isAdminAttempt = email === 'fahim' || email.includes('fahim') || email === 'admin' || email.includes('admin') || !email;
 
       return {
         success: true,
         token: isAdminAttempt ? 'demo_admin_token_123' : 'demo_customer_token_123',
         user: {
           id: 1,
-          name: isAdminAttempt ? 'Syvora Administrator' : 'Demo Customer',
-          email: isAdminAttempt ? 'admin@syvora.com' : 'customer@syvora.com',
+          name: isAdminAttempt ? 'Fahim' : 'Demo Customer',
+          email: isAdminAttempt ? 'fahim@syvora.com' : 'customer@syvora.com',
           role: isAdminAttempt ? 'admin' : 'customer'
         }
       } as unknown as T;

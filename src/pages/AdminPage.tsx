@@ -22,8 +22,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigateStore }) => {
   const { formatPrice } = useCurrency();
 
   // Admin Login Screen States
-  const [adminEmail, setAdminEmail] = useState('admin');
-  const [adminPass, setAdminPass] = useState('12345');
+  const [adminEmail, setAdminEmail] = useState('Fahim');
+  const [adminPass, setAdminPass] = useState('156258');
   const [loginError, setLoginError] = useState('');
   const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
 
@@ -175,7 +175,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigateStore }) => {
                   <input
                     type="text"
                     required
-                    placeholder="admin or admin@syvora.com"
+                    placeholder="Fahim or fahim@syvora.com"
                     value={adminEmail}
                     onChange={e => setAdminEmail(e.target.value)}
                     className="w-full bg-white/10 text-white placeholder-syvora-muted rounded-xl pl-9 pr-3 py-3 border border-white/10 outline-none focus:border-syvora-rose transition-all font-medium"
@@ -211,8 +211,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigateStore }) => {
 
             <div className="pt-4 border-t border-white/10 text-center space-y-2">
               <div className="p-3 bg-syvora-rose/10 border border-syvora-rose/20 rounded-xl text-[11px] text-syvora-rose font-medium">
-                <p className="font-bold uppercase tracking-wider text-[10px]">🔑 Demo Admin Credentials</p>
-                <p className="mt-0.5 font-mono">Username: <strong>admin</strong> | Password: <strong>12345</strong></p>
+                <p className="font-bold uppercase tracking-wider text-[10px]">🔑 Admin Access Credentials</p>
+                <p className="mt-0.5 font-mono">Username: <strong>Fahim</strong> | Password: <strong>156258</strong></p>
               </div>
             </div>
           </div>

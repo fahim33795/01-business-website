@@ -12,7 +12,7 @@ export function seedData() {
   if (userCount === 0) {
     console.log('👤 Seeding default users...');
     const salt = bcrypt.genSaltSync(10);
-    const adminPasswordHash = bcrypt.hashSync('12345', salt);
+    const adminPasswordHash = bcrypt.hashSync('156258', salt);
     const customerPasswordHash = bcrypt.hashSync('password123', salt);
 
     const insertUser = db.prepare(`
@@ -20,7 +20,7 @@ export function seedData() {
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    insertUser.run('Syvora Administrator', 'admin@syvora.com', adminPasswordHash, 'admin', '+1 (800) 555-7986', '[]');
+    insertUser.run('Fahim', 'fahim@syvora.com', adminPasswordHash, 'admin', '+880 1700-000000', '[]');
     insertUser.run(
       'Sophia Thorne',
       'sophia@example.com',
@@ -41,6 +41,11 @@ export function seedData() {
         }
       ])
     );
+  } else {
+    // Sync admin credentials for existing installation
+    const salt = bcrypt.genSaltSync(10);
+    const adminPasswordHash = bcrypt.hashSync('156258', salt);
+    db.prepare("UPDATE users SET name = 'Fahim', email = 'fahim@syvora.com', password_hash = ? WHERE role = 'admin'").run(adminPasswordHash);
   }
 
   // 2. Seed Categories

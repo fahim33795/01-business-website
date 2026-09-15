@@ -63,12 +63,13 @@ export function login(req, res) {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
-    const stmt = db.prepare('SELECT * FROM users WHERE email = ? OR email = ?');
-    const user = stmt.get(email.toLowerCase().trim(), email.trim());
+    const input = email.trim();
+    const stmt = db.prepare('SELECT * FROM users WHERE LOWER(email) = ? OR LOWER(name) = ? OR email = ?');
+    const user = stmt.get(input.toLowerCase(), input.toLowerCase(), input);
 
-    // Also support username 'admin' for demo ease
+    // Also support username 'Fahim' or 'admin' for admin login
     let targetUser = user;
-    if (!targetUser && email.toLowerCase().trim() === 'admin') {
+    if (!targetUser && (input.toLowerCase() === 'admin' || input.toLowerCase() === 'fahim')) {
       const adminStmt = db.prepare("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
       targetUser = adminStmt.get();
     }
