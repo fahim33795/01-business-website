@@ -130,11 +130,20 @@ export const CheckoutSteps: React.FC<CheckoutStepsProps> = ({ onOrderSuccess, on
         },
         delivery_method: deliveryMethod,
         payment_method: paymentMethod,
-        items: cart.map(item => ({
-          id: item.product.id,
-          quantity: item.quantity,
-          variant: item.selectedVariant
-        })),
+        items: cart.map(item => {
+          const itemPrice = item.product.sale_price && item.product.sale_price < item.product.price ? item.product.sale_price : item.product.price;
+          return {
+            id: item.product.id,
+            name: item.product.name,
+            price: itemPrice,
+            original_price: item.product.price,
+            quantity: item.quantity,
+            variant: item.selectedVariant || null,
+            image: Array.isArray(item.product.images) ? item.product.images[0] : item.product.images || '',
+            sku: item.product.sku || `SYV-PROD-${item.product.id}`,
+            subtotal: itemPrice * item.quantity
+          };
+        }),
         coupon_code: appliedCoupon ? appliedCoupon.code : null,
         currency
       };

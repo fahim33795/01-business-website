@@ -22,8 +22,8 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
   const { formatPrice } = useCurrency();
 
   // Admin Login Screen States
-  const [adminEmail, setAdminEmail] = useState('Fahim');
-  const [adminPass, setAdminPass] = useState('156258');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPass, setAdminPass] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
 
@@ -124,6 +124,32 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
   useEffect(() => {
     if (isAdmin) {
       loadDashboardData();
+
+      // Listen for custom order placement event in same window
+      const handleNewOrder = () => {
+        loadDashboardData();
+      };
+
+      // Listen for localStorage changes across browser tabs
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'syvora_mock_orders' || e.key === 'syvora_mock_customers') {
+          loadDashboardData();
+        }
+      };
+
+      window.addEventListener('syvora_order_created', handleNewOrder);
+      window.addEventListener('storage', handleStorageChange);
+
+      // 30-second interval polling for background updates
+      const interval = setInterval(() => {
+        loadDashboardData();
+      }, 30000);
+
+      return () => {
+        window.removeEventListener('syvora_order_created', handleNewOrder);
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+      };
     }
   }, [isAdmin]);
 
@@ -175,7 +201,7 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
                   <input
                     type="text"
                     required
-                    placeholder="Fahim or fahim@syvora.com"
+                    placeholder="Enter Admin Username or Email"
                     value={adminEmail}
                     onChange={e => setAdminEmail(e.target.value)}
                     className="w-full bg-white/10 text-white placeholder-syvora-muted rounded-xl pl-9 pr-3 py-3 border border-white/10 outline-none focus:border-syvora-rose transition-all font-medium"
@@ -207,26 +233,7 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
               >
                 {isSubmittingLogin ? 'Authenticating...' : 'Sign In to Admin Portal'}
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setAdminEmail('Fahim');
-                  setAdminPass('156258');
-                  login('Fahim', '156258');
-                }}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl uppercase tracking-wider transition-all shadow-luxury flex items-center justify-center gap-2"
-              >
-                ⚡ One-Click Quick Login as Fahim
-              </button>
             </form>
-
-            <div className="pt-4 border-t border-white/10 text-center space-y-2">
-              <div className="p-3 bg-syvora-rose/10 border border-syvora-rose/20 rounded-xl text-[11px] text-syvora-rose font-medium">
-                <p className="font-bold uppercase tracking-wider text-[10px]">🔑 Admin Access Credentials</p>
-                <p className="mt-0.5 font-mono">Username: <strong>Fahim</strong> | Password: <strong>156258</strong></p>
-              </div>
-            </div>
           </div>
 
           <div className="text-center">
@@ -704,7 +711,18 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
         {/* 4. ORDERS & CUSTOMER DETAILS TAB */}
         {activeTab === 'orders' && (
           <div className="space-y-6">
-            <h3 className="font-serif text-xl font-bold text-syvora-charcoal">All Orders & Customer Information ({orders.length})</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="font-serif text-xl font-bold text-syvora-charcoal">All Orders & Customer Information ({orders.length})</h3>
+              <button
+                type="button"
+                onClick={loadDashboardData}
+                disabled={loading}
+                className="px-4 py-2 bg-syvora-charcoal hover:bg-syvora-rose text-syvora-ivory rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-luxury transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                {loading ? 'Refreshing...' : 'Refresh Orders'}
+              </button>
+            </div>
             <div className="bg-white/90 border border-syvora-border rounded-3xl overflow-hidden shadow-soft">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -1312,25 +1330,72 @@ export const AdminPage: FC<AdminPageProps> = ({ onNavigateStore }) => {
       {/* Customer Profile Details Modal */}
       {selectedCustomerDetails && (
         <div className="fixed inset-0 z-50 p-4 flex items-center justify-center bg-syvora-charcoal/70 backdrop-blur-xs">
-          <div className="bg-syvora-ivory border border-syvora-border p-6 rounded-3xl max-w-lg w-full space-y-4 text-xs">
+          <div className="bg-syvora-ivory border border-syvora-border p-6 rounded-3xl max-w-xl w-full space-y-4 text-xs max-h-[85vh] overflow-y-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-syvora-border pb-3">
-              <h3 className="font-serif text-xl font-bold text-syvora-charcoal">Customer Profile Info</h3>
-              <button onClick={() => setSelectedCustomerDetails(null)}><X className="w-5 h-5 text-syvora-muted" /></button>
+              <div>
+                <span className="text-[10px] font-bold uppercase text-syvora-rose tracking-wider block">Customer Intelligence</span>
+                <h3 className="font-serif text-xl font-bold text-syvora-charcoal">{selectedCustomerDetails.name}</h3>
+              </div>
+              <button onClick={() => setSelectedCustomerDetails(null)} className="p-1.5 bg-syvora-champagne/60 rounded-full hover:bg-syvora-rose hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-syvora-border space-y-2">
-              <p><strong className="text-syvora-charcoal">Name:</strong> {selectedCustomerDetails.name}</p>
-              <p><strong className="text-syvora-charcoal">Email:</strong> {selectedCustomerDetails.email}</p>
-              <p><strong className="text-syvora-charcoal">Phone:</strong> {selectedCustomerDetails.phone || 'N/A'}</p>
-              <p><strong className="text-syvora-charcoal">Total Lifetime Spend:</strong> <span className="text-syvora-rose font-bold">{formatPrice(selectedCustomerDetails.total_spent || 0)}</span></p>
-              <p><strong className="text-syvora-charcoal">Total Orders Placed:</strong> {selectedCustomerDetails.total_orders || 0}</p>
+            <div className="grid grid-cols-2 gap-3 bg-white p-4 rounded-2xl border border-syvora-border">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-syvora-muted block">Email Address</span>
+                <strong className="text-syvora-charcoal text-xs block truncate">{selectedCustomerDetails.email}</strong>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-syvora-muted block">Phone Number</span>
+                <strong className="text-syvora-rose text-xs block">{selectedCustomerDetails.phone || 'N/A'}</strong>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-syvora-muted block">Lifetime Spend</span>
+                <strong className="text-syvora-rose text-sm font-bold block">{formatPrice(selectedCustomerDetails.total_spent || 0)}</strong>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-syvora-muted block">Total Orders Placed</span>
+                <strong className="text-syvora-charcoal text-sm font-bold block">{selectedCustomerDetails.total_orders || 0} Orders</strong>
+              </div>
+            </div>
+
+            {/* Customer Order History Breakdown */}
+            <div className="space-y-2">
+              <h4 className="font-bold text-syvora-charcoal uppercase tracking-wider text-[11px] flex items-center gap-1">
+                <ShoppingBag className="w-3.5 h-3.5 text-syvora-rose" /> Customer Order History
+              </h4>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {orders.filter(o => 
+                  (selectedCustomerDetails.email && o.customer_email?.toLowerCase() === selectedCustomerDetails.email.toLowerCase()) ||
+                  (selectedCustomerDetails.phone && o.customer_phone === selectedCustomerDetails.phone)
+                ).length === 0 ? (
+                  <p className="text-syvora-muted italic text-[11px] p-3 bg-white rounded-xl border border-syvora-border">No recorded orders for this customer yet.</p>
+                ) : (
+                  orders.filter(o => 
+                    (selectedCustomerDetails.email && o.customer_email?.toLowerCase() === selectedCustomerDetails.email.toLowerCase()) ||
+                    (selectedCustomerDetails.phone && o.customer_phone === selectedCustomerDetails.phone)
+                  ).map(ord => (
+                    <div key={ord.id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-syvora-border hover:border-syvora-rose transition-colors">
+                      <div>
+                        <strong className="font-mono font-bold text-syvora-charcoal block">{ord.order_number}</strong>
+                        <span className="text-[10px] text-syvora-muted block">{new Date(ord.created_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' })} • {ord.items?.length || 0} items</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-syvora-rose block">{formatPrice(ord.total)}</span>
+                        <span className="text-[10px] uppercase font-semibold px-2 py-0.5 bg-syvora-champagne text-syvora-charcoal rounded-md inline-block mt-0.5">{ord.order_status}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             <button
               onClick={() => setSelectedCustomerDetails(null)}
-              className="w-full bg-syvora-charcoal text-white py-3 rounded-xl font-bold uppercase tracking-wider"
+              className="w-full bg-syvora-charcoal hover:bg-syvora-rose text-white py-3 rounded-xl font-bold uppercase tracking-wider transition-colors shadow-luxury"
             >
-              Close
+              Close Customer Profile
             </button>
           </div>
         </div>

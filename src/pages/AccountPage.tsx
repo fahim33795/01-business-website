@@ -137,7 +137,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ onNavigate, initialTab
                 <input
                   type="text"
                   required
-                  placeholder="admin@syvora.com or your@email.com"
+                  placeholder="your@email.com"
                   value={loginEmail}
                   onChange={e => setLoginEmail(e.target.value)}
                   className="w-full bg-syvora-ivory text-syvora-charcoal rounded-xl p-3 border border-syvora-border outline-none focus:border-syvora-rose"
@@ -156,11 +156,6 @@ export const AccountPage: React.FC<AccountPageProps> = ({ onNavigate, initialTab
                   onChange={e => setLoginPassword(e.target.value)}
                   className="w-full bg-syvora-ivory text-syvora-charcoal rounded-xl p-3 border border-syvora-border outline-none focus:border-syvora-rose"
                 />
-              </div>
-
-              <div className="bg-syvora-champagne/40 p-3 rounded-xl text-[11px] text-syvora-muted border border-syvora-border space-y-1">
-                <span className="font-bold text-syvora-charcoal block uppercase tracking-wider text-[10px]">✨ Development Admin Credentials:</span>
-                <span>Username: <strong className="text-syvora-rose font-mono">admin</strong></span> | <span>Password: <strong className="text-syvora-rose font-mono">12345</strong></span>
               </div>
 
               <button

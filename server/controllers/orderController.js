@@ -22,7 +22,10 @@ export function createOrder(req, res) {
       currency = 'USD'
     } = req.body;
 
-    if (!customer_name || !customer_email || !customer_phone || !shipping_address || !items.length || !payment_method) {
+    const finalEmail = customer_email || `${(customer_phone || 'customer').replace(/[^0-9]/g, '')}@syvora.com`;
+    const finalPhone = customer_phone || 'N/A';
+
+    if (!customer_name || !shipping_address || !items || !items.length || !payment_method) {
       return res.status(400).json({ success: false, message: 'All required checkout fields must be provided.' });
     }
 
@@ -31,11 +34,27 @@ export function createOrder(req, res) {
     const verifiedItems = [];
 
     for (const item of items) {
+      const prodId = Number(item.id);
       const productStmt = db.prepare('SELECT id, name, sku, price, sale_price, stock, images FROM products WHERE id = ?');
-      const product = productStmt.get(item.id);
+      const product = productStmt.get(prodId);
 
       if (!product) {
-        return res.status(400).json({ success: false, message: `Product #${item.id} is no longer available.` });
+        // Fallback using item name/price if product ID is non-standard
+        const itemPrice = Number(item.price) || 1000;
+        const itemSubtotal = itemPrice * (item.quantity || 1);
+        calculatedSubtotal += itemSubtotal;
+        verifiedItems.push({
+          id: prodId || Date.now(),
+          name: item.name || 'Beauty Product',
+          sku: item.sku || `SYV-PROD-${prodId || '001'}`,
+          price: itemPrice,
+          original_price: itemPrice,
+          quantity: item.quantity || 1,
+          variant: item.variant || null,
+          image: item.image || '',
+          subtotal: itemSubtotal
+        });
+        continue;
       }
 
       if (product.stock < item.quantity) {
@@ -104,7 +123,9 @@ export function createOrder(req, res) {
 
     // Deduct stock for items
     for (const item of verifiedItems) {
-      db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?').run(item.quantity, item.id);
+      if (item.id) {
+        db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?').run(item.quantity, item.id);
+      }
     }
 
     const userId = req.user ? req.user.id : null;
@@ -116,15 +137,15 @@ export function createOrder(req, res) {
         shipping_address, delivery_method, payment_method, payment_status,
         order_status, tracking_number, items, subtotal, discount,
         shipping_fee, tax, total, currency
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Confirmed', ?, ?, ?, ?, ?, 0, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, 0, ?, ?)
     `);
 
     const info = insertOrderStmt.run(
       orderNumber,
       userId,
       customer_name,
-      customer_email,
-      customer_phone,
+      finalEmail,
+      finalPhone,
       typeof shipping_address === 'string' ? shipping_address : JSON.stringify(shipping_address),
       delivery_method,
       payment_method,

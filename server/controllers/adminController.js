@@ -11,35 +11,37 @@ function parseJSON(str, fallback = {}) {
 
 export function getDashboardStats(req, res) {
   try {
-    // Total Revenue
-    const revenueStmt = db.prepare("SELECT SUM(total) as total_revenue FROM orders WHERE payment_status = 'paid' OR order_status = 'Delivered'");
+    // Total Sales / Gross Order Revenue (Active non-cancelled orders)
+    const revenueStmt = db.prepare("SELECT COALESCE(SUM(total), 0) as total_revenue FROM orders WHERE order_status != 'Cancelled'");
     const totalRevenue = revenueStmt.get().total_revenue || 0;
 
-    // Today's Sales
-    const todayStmt = db.prepare("SELECT SUM(total) as today_sales FROM orders WHERE date(created_at) = date('now') AND (payment_status = 'paid' OR order_status = 'Delivered')");
+    // Today's Sales Volume
+    const todayStmt = db.prepare("SELECT COALESCE(SUM(total), 0) as today_sales FROM orders WHERE date(created_at) = date('now') AND order_status != 'Cancelled'");
     const todaySales = todayStmt.get().today_sales || 0;
 
-    // Monthly Sales
-    const monthStmt = db.prepare("SELECT SUM(total) as month_sales FROM orders WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now') AND (payment_status = 'paid' OR order_status = 'Delivered')");
+    // Monthly Sales Volume
+    const monthStmt = db.prepare("SELECT COALESCE(SUM(total), 0) as month_sales FROM orders WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now') AND order_status != 'Cancelled'");
     const monthSales = monthStmt.get().month_sales || 0;
 
-    // Total Orders
-    const totalOrdersStmt = db.prepare("SELECT COUNT(*) as count FROM orders");
+    // Total Orders (Active non-cancelled)
+    const totalOrdersStmt = db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status != 'Cancelled'");
     const totalOrders = totalOrdersStmt.get().count || 0;
 
-    // Pending Orders
-    const pendingOrdersStmt = db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status = 'Pending' OR order_status = 'Confirmed'");
+    // Pending Orders needing processing
+    const pendingOrdersStmt = db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status IN ('Pending', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery')");
     const pendingOrders = pendingOrdersStmt.get().count || 0;
 
-    // Completed Orders
+    // Completed / Delivered Orders
     const completedOrdersStmt = db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status = 'Delivered'");
     const completedOrders = completedOrdersStmt.get().count || 0;
 
-    // Total Customers
-    const totalCustomersStmt = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'customer'");
-    const totalCustomers = totalCustomersStmt.get().count || 0;
+    // Total Customers (Unique registered or guest customers)
+    const totalCustomersStmt = db.prepare("SELECT COUNT(DISTINCT LOWER(customer_email)) as count FROM orders");
+    const guestCustomerCount = totalCustomersStmt.get().count || 0;
+    const registeredCustomerCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'customer'").get().count || 0;
+    const totalCustomers = Math.max(guestCustomerCount, registeredCustomerCount);
 
-    // Total Products
+    // Total Active Products
     const totalProductsStmt = db.prepare("SELECT COUNT(*) as count FROM products WHERE status != 'deleted'");
     const totalProducts = totalProductsStmt.get().count || 0;
 
@@ -62,8 +64,9 @@ export function getDashboardStats(req, res) {
 
     // Chart data: Monthly Sales for last 6 months
     const salesChartStmt = db.prepare(`
-      SELECT strftime('%Y-%m', created_at) as month, SUM(total) as revenue, COUNT(*) as orders
+      SELECT strftime('%Y-%m', created_at) as month, COALESCE(SUM(total), 0) as revenue, COUNT(*) as orders
       FROM orders
+      WHERE order_status != 'Cancelled'
       GROUP BY month
       ORDER BY month DESC
       LIMIT 6
@@ -99,7 +102,8 @@ export function getCustomers(req, res) {
   try {
     const registeredUsers = db.prepare(`
       SELECT u.id, u.name, u.email, u.phone, u.role, u.addresses, u.created_at,
-             COUNT(o.id) as total_orders, COALESCE(SUM(o.total), 0) as total_spent
+             COUNT(CASE WHEN o.order_status != 'Cancelled' THEN o.id END) as total_orders,
+             COALESCE(SUM(CASE WHEN o.order_status != 'Cancelled' THEN o.total ELSE 0 END), 0) as total_spent
       FROM users u
       LEFT JOIN orders o ON u.id = o.user_id
       WHERE u.role = 'customer'
@@ -111,8 +115,8 @@ export function getCustomers(req, res) {
              o.customer_name as name,
              o.customer_phone as phone,
              o.shipping_address as addresses,
-             COUNT(o.id) as total_orders,
-             COALESCE(SUM(o.total), 0) as total_spent,
+             COUNT(CASE WHEN o.order_status != 'Cancelled' THEN o.id END) as total_orders,
+             COALESCE(SUM(CASE WHEN o.order_status != 'Cancelled' THEN o.total ELSE 0 END), 0) as total_spent,
              MIN(o.created_at) as created_at
       FROM orders o
       WHERE o.user_id IS NULL OR o.user_id NOT IN (SELECT id FROM users)

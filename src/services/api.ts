@@ -396,15 +396,45 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
 
   if (method === 'GET') {
     if (url.pathname === '/admin/stats') {
-      const totalSales = orders.reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+      const activeOrders = orders.filter((o: any) => o.order_status !== 'Cancelled');
+      const totalSales = activeOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const monthStr = todayStr.substring(0, 7);
+
+      const todaySales = activeOrders
+        .filter((o: any) => (o.created_at || '').startsWith(todayStr))
+        .reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+
+      const monthSales = activeOrders
+        .filter((o: any) => (o.created_at || '').startsWith(monthStr))
+        .reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+
+      const pendingOrders = activeOrders.filter((o: any) => 
+        ['pending', 'confirmed', 'processing', 'packed', 'shipped'].includes((o.order_status || '').toLowerCase())
+      ).length;
+
+      const completedOrders = activeOrders.filter((o: any) => 
+        (o.order_status || '').toLowerCase() === 'delivered'
+      ).length;
+
+      // Unique customers set
+      const customerKeys = new Set(orders.map((o: any) => (o.customer_email || o.customer_phone || '').toLowerCase()));
+
       return {
         success: true,
         stats: {
-          totalSales: totalSales > 0 ? totalSales : 245800,
-          totalOrders: orders.length,
-          totalCustomers: customers.length,
+          totalSales,
+          totalRevenue: totalSales,
+          todaySales,
+          monthSales,
+          totalOrders: activeOrders.length,
+          pendingOrders,
+          completedOrders,
+          totalCustomers: Math.max(customerKeys.size, customers.length),
           totalProducts: products.length,
-          lowStockCount: products.filter((p: any) => p.stock <= 10).length
+          lowStockCount: products.filter((p: any) => p.stock <= 10).length,
+          outOfStockCount: products.filter((p: any) => p.stock === 0).length,
+          recentOrders: orders.slice(0, 10)
         }
       } as unknown as T;
     }
@@ -432,7 +462,57 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       return { success: true, order: targetOrder } as unknown as T;
     }
     if (url.pathname === '/admin/customers') {
-      return { success: true, customers } as unknown as T;
+      // Build dynamic customer aggregated directory from actual orders list
+      const custMap = new Map<string, any>();
+      
+      orders.forEach((o: any) => {
+        const key = (o.customer_email || o.customer_phone || `cust_${o.id}`).toLowerCase().trim();
+        const isValidOrder = o.order_status !== 'Cancelled';
+        const orderAmt = Number(o.total) || 0;
+
+        if (!custMap.has(key)) {
+          custMap.set(key, {
+            id: o.id,
+            name: o.customer_name || 'Customer',
+            email: o.customer_email || 'N/A',
+            phone: o.customer_phone || 'N/A',
+            addresses: [o.shipping_address],
+            total_orders: isValidOrder ? 1 : 0,
+            total_spent: isValidOrder ? orderAmt : 0,
+            order_history: [o.order_number],
+            created_at: (o.created_at || '').split('T')[0]
+          });
+        } else {
+          const existing = custMap.get(key);
+          if (isValidOrder) {
+            existing.total_orders += 1;
+            existing.total_spent += orderAmt;
+          }
+          if (o.order_number && !existing.order_history.includes(o.order_number)) {
+            existing.order_history.push(o.order_number);
+          }
+        }
+      });
+
+      // Include any registered users who haven't placed an order yet
+      customers.forEach((c: any) => {
+        const key = (c.email || c.phone || '').toLowerCase().trim();
+        if (key && !custMap.has(key)) {
+          custMap.set(key, {
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            phone: c.phone || 'N/A',
+            total_orders: c.total_orders || 0,
+            total_spent: c.total_spent || 0,
+            order_history: [],
+            created_at: c.created_at || new Date().toISOString().split('T')[0]
+          });
+        }
+      });
+
+      const aggregatedCustomers = Array.from(custMap.values());
+      return { success: true, customers: aggregatedCustomers } as unknown as T;
     }
     if (url.pathname === '/coupons') {
       return { success: true, coupons } as unknown as T;
@@ -535,9 +615,27 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
 
     if (url.pathname === '/orders') {
       const orderNum = `SYV-${Math.floor(100000 + Math.random() * 900000)}`;
-      const subtotalAmt = reqBody.subtotal || 1500;
+      
+      // Resolve items and calculate accurate subtotal
+      const resolvedItems = (reqBody.items || []).map((item: any) => {
+        const matchingProd = products.find((p: any) => p.id === Number(item.id));
+        const itemPrice = Number(item.price) || (matchingProd ? (matchingProd.sale_price || matchingProd.price) : 1000);
+        const qty = Number(item.quantity) || 1;
+        return {
+          id: item.id || (matchingProd ? matchingProd.id : Date.now()),
+          name: item.name || (matchingProd ? matchingProd.name : 'Beauty Product'),
+          price: itemPrice,
+          quantity: qty,
+          variant: item.variant || null,
+          image: item.image || (matchingProd ? (Array.isArray(matchingProd.images) ? matchingProd.images[0] : matchingProd.images) : ''),
+          sku: item.sku || (matchingProd ? matchingProd.sku : `SYV-PROD-${item.id}`),
+          subtotal: itemPrice * qty
+        };
+      });
+
+      const subtotalAmt = reqBody.subtotal || resolvedItems.reduce((sum: number, i: any) => sum + i.subtotal, 0) || 1500;
       const shipFee = reqBody.delivery_method === 'Outside Dhaka' ? 130 : 80;
-      const grandTotalAmt = reqBody.grandTotal || reqBody.total || (subtotalAmt + shipFee);
+      const grandTotalAmt = reqBody.grandTotal || reqBody.total || Math.max(0, subtotalAmt + shipFee);
 
       const newOrder = {
         id: Date.now(),
@@ -549,8 +647,8 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
         delivery_method: reqBody.delivery_method || 'Inside Dhaka',
         payment_method: reqBody.payment_method || 'bkash',
         payment_status: 'pending',
-        order_status: 'pending',
-        items: reqBody.items || [],
+        order_status: 'Pending',
+        items: resolvedItems,
         subtotal: subtotalAmt,
         shipping_fee: shipFee,
         total: grandTotalAmt,
@@ -560,8 +658,12 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       orders.unshift(newOrder);
       setStoredData('syvora_mock_orders', orders);
 
-      // Add to customers
-      const custIndex = customers.findIndex((c: any) => c.email === newOrder.customer_email || c.phone === newOrder.customer_phone);
+      // Add / Update customers database
+      const custIndex = customers.findIndex((c: any) => 
+        (newOrder.customer_email && c.email?.toLowerCase() === newOrder.customer_email.toLowerCase()) || 
+        (newOrder.customer_phone && c.phone === newOrder.customer_phone)
+      );
+      
       if (custIndex >= 0) {
         customers[custIndex].total_orders = (customers[custIndex].total_orders || 0) + 1;
         customers[custIndex].total_spent = (customers[custIndex].total_spent || 0) + grandTotalAmt;
@@ -577,6 +679,11 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
         });
       }
       setStoredData('syvora_mock_customers', customers);
+
+      // Dispatch order creation notification for live UI updates
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('syvora_order_created', { detail: newOrder }));
+      }
 
       return {
         success: true,
@@ -677,15 +784,16 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
 
     if (url.pathname === '/auth/login') {
       const email = (reqBody.email || reqBody.username || '').toLowerCase().trim();
-      const isAdminAttempt = email === 'fahim' || email.includes('fahim') || email === 'admin' || email.includes('admin') || !email;
+      const password = (reqBody.password || '').trim();
+      const isAdminAttempt = (email === 'fahim' || email === 'fahim@syvora.com' || email === 'admin') && password.length > 0;
 
       return {
         success: true,
         token: isAdminAttempt ? 'demo_admin_token_123' : 'demo_customer_token_123',
         user: {
           id: 1,
-          name: isAdminAttempt ? 'Fahim' : 'Demo Customer',
-          email: isAdminAttempt ? 'fahim@syvora.com' : 'customer@syvora.com',
+          name: isAdminAttempt ? 'Fahim' : 'Customer',
+          email: isAdminAttempt ? 'fahim@syvora.com' : (email || 'customer@syvora.com'),
           role: isAdminAttempt ? 'admin' : 'customer'
         }
       } as unknown as T;

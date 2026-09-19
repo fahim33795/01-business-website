@@ -141,7 +141,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li><button onClick={() => onNavigate('about')} className="hover:text-syvora-rose transition-colors">About Syvora</button></li>
               <li><button onClick={() => onNavigate('faq', 'tab=privacy')} className="hover:text-syvora-rose transition-colors">Privacy Policy</button></li>
               <li><button onClick={() => onNavigate('faq', 'tab=terms')} className="hover:text-syvora-rose transition-colors">Terms of Service</button></li>
-              <li><button onClick={() => onNavigate('admin')} className="hover:text-syvora-rose transition-colors">Admin Portal</button></li>
             </ul>
 
             <div className="pt-4">
