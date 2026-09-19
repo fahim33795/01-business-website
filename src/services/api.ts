@@ -382,32 +382,15 @@ function generateTimeline(orderStatus: string) {
   }));
 }
 
-const CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a0b8982b263d73';
+const CLOUD_DB_URL = 'https://crudcrud.com/api/d2da605d06b64f2c8a29e4edaad6bbed/orders';
 
 async function pushOrderToCloudDB(newOrder: any) {
   try {
-    const res = await fetch(CLOUD_DB_URL);
-    let existingOrders: any[] = [];
-    if (res.ok) {
-      const cloudData = await res.json();
-      if (cloudData.data && Array.isArray(cloudData.data.orders)) {
-        existingOrders = cloudData.data.orders;
-      }
-    }
-
-    const filtered = existingOrders.filter((o: any) => o.order_number !== newOrder.order_number && o.id !== newOrder.id);
-    const updatedOrders = [newOrder, ...filtered];
-
     await fetch(CLOUD_DB_URL, {
-      method: 'PUT',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'SYVORA_STORE_ORDERS_MASTER_2026',
-        data: { orders: updatedOrders }
-      })
+      body: JSON.stringify(newOrder)
     });
-
-    setStoredData('syvora_mock_orders', updatedOrders);
   } catch (_e) {}
 }
 
@@ -415,15 +398,14 @@ async function syncCloudOrders() {
   try {
     const res = await fetch(CLOUD_DB_URL);
     if (!res.ok) return;
-    const cloudData = await res.json();
-    if (cloudData.data && Array.isArray(cloudData.data.orders) && cloudData.data.orders.length > 0) {
-      const cloudOrders: any[] = cloudData.data.orders;
+    const cloudOrders: any[] = await res.json();
+    if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
       const localOrders: any[] = getStoredData('syvora_mock_orders', INITIAL_ORDERS);
 
       const mergedMap = new Map<string, any>();
       [...cloudOrders, ...localOrders].forEach((o: any) => {
         const key = o.order_number || String(o.id);
-        if (!mergedMap.has(key)) {
+        if (key && !mergedMap.has(key)) {
           mergedMap.set(key, o);
         }
       });
