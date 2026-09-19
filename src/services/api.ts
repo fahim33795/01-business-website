@@ -382,6 +382,58 @@ function generateTimeline(orderStatus: string) {
   }));
 }
 
+const CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a0b8982b263d73';
+
+async function pushOrderToCloudDB(newOrder: any) {
+  try {
+    const res = await fetch(CLOUD_DB_URL);
+    let existingOrders: any[] = [];
+    if (res.ok) {
+      const cloudData = await res.json();
+      if (cloudData.data && Array.isArray(cloudData.data.orders)) {
+        existingOrders = cloudData.data.orders;
+      }
+    }
+
+    const filtered = existingOrders.filter((o: any) => o.order_number !== newOrder.order_number && o.id !== newOrder.id);
+    const updatedOrders = [newOrder, ...filtered];
+
+    await fetch(CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'SYVORA_STORE_ORDERS_MASTER_2026',
+        data: { orders: updatedOrders }
+      })
+    });
+
+    setStoredData('syvora_mock_orders', updatedOrders);
+  } catch (_e) {}
+}
+
+async function syncCloudOrders() {
+  try {
+    const res = await fetch(CLOUD_DB_URL);
+    if (!res.ok) return;
+    const cloudData = await res.json();
+    if (cloudData.data && Array.isArray(cloudData.data.orders) && cloudData.data.orders.length > 0) {
+      const cloudOrders: any[] = cloudData.data.orders;
+      const localOrders: any[] = getStoredData('syvora_mock_orders', INITIAL_ORDERS);
+
+      const mergedMap = new Map<string, any>();
+      [...cloudOrders, ...localOrders].forEach((o: any) => {
+        const key = o.order_number || String(o.id);
+        if (!mergedMap.has(key)) {
+          mergedMap.set(key, o);
+        }
+      });
+
+      const mergedOrders = Array.from(mergedMap.values());
+      setStoredData('syvora_mock_orders', mergedOrders);
+    }
+  } catch (_e) {}
+}
+
 function getMockFallback<T>(endpoint: string, options: RequestInit): T {
   const method = (options.method || 'GET').toUpperCase();
   const url = new URL(endpoint, 'http://localhost');
@@ -658,6 +710,9 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       orders.unshift(newOrder);
       setStoredData('syvora_mock_orders', orders);
 
+      // Push to Cloud DB over HTTPS for multi-device sync
+      pushOrderToCloudDB(newOrder);
+
       // Add / Update customers database
       const custIndex = customers.findIndex((c: any) => 
         (newOrder.customer_email && c.email?.toLowerCase() === newOrder.customer_email.toLowerCase()) || 
@@ -920,6 +975,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
     return data as T;
   } catch (_err) {
+    if (endpoint.includes('/orders') || endpoint.includes('/admin/stats') || endpoint.includes('/admin/customers')) {
+      await syncCloudOrders();
+    }
     return getMockFallback<T>(endpoint, options);
   }
 }
