@@ -368,6 +368,20 @@ function setStoredData(key: string, data: any) {
   } catch (_e) {}
 }
 
+function generateTimeline(orderStatus: string) {
+  const steps = ['Pending', 'Confirmed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered'];
+  const statusLower = (orderStatus || 'Pending').toLowerCase();
+
+  let currentIndex = steps.findIndex(s => s.toLowerCase() === statusLower);
+  if (currentIndex === -1) currentIndex = 1;
+
+  return steps.map((step, idx) => ({
+    status: step,
+    completed: idx <= currentIndex,
+    current: idx === currentIndex
+  }));
+}
+
 function getMockFallback<T>(endpoint: string, options: RequestInit): T {
   const method = (options.method || 'GET').toUpperCase();
   const url = new URL(endpoint, 'http://localhost');
@@ -395,12 +409,27 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
       } as unknown as T;
     }
     if (url.pathname === '/orders') {
-      return { success: true, orders } as unknown as T;
+      const mappedOrders = orders.map((o: any) => ({
+        ...o,
+        timeline: o.timeline || generateTimeline(o.order_status)
+      }));
+      return { success: true, orders: mappedOrders } as unknown as T;
     }
     if (url.pathname.startsWith('/orders/track/')) {
       const num = decodeURIComponent(url.pathname.replace('/orders/track/', ''));
       const found = orders.find((o: any) => o.order_number === num || String(o.id) === num);
-      return { success: true, order: found || orders[0] } as unknown as T;
+      const targetOrder = found || orders[0];
+      const withTimeline = {
+        ...targetOrder,
+        timeline: targetOrder.timeline || generateTimeline(targetOrder.order_status)
+      };
+      return { success: true, order: withTimeline } as unknown as T;
+    }
+    if (url.pathname.startsWith('/orders/invoice/')) {
+      const invId = url.pathname.replace('/orders/invoice/', '');
+      const found = orders.find((o: any) => String(o.id) === invId || o.order_number === invId);
+      const targetOrder = found || orders[0];
+      return { success: true, order: targetOrder } as unknown as T;
     }
     if (url.pathname === '/admin/customers') {
       return { success: true, customers } as unknown as T;
@@ -429,6 +458,16 @@ function getMockFallback<T>(endpoint: string, options: RequestInit): T {
     }
     if (url.pathname === '/categories') {
       return { success: true, categories } as unknown as T;
+    }
+    if (url.pathname === '/banners') {
+      return { success: true, banners: [] } as unknown as T;
+    }
+    if (url.pathname === '/products/search/suggestions') {
+      const q = (url.searchParams.get('q') || '').toLowerCase().trim();
+      const matched = products.filter((p: any) =>
+        p.name.toLowerCase().includes(q) || (p.category_name || '').toLowerCase().includes(q)
+      ).slice(0, 5);
+      return { success: true, suggestions: matched } as unknown as T;
     }
     if (url.pathname === '/products') {
       let filtered = [...products];
@@ -760,9 +799,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
 
+    const contentType = response.headers.get('content-type') || '';
+    if (!response.ok || contentType.includes('text/html')) {
+      throw new Error(`Static fallback (HTTP ${response.status})`);
+    }
+
     const data = await response.json();
 
-    if (!response.ok || data.success === false) {
+    if (data.success === false) {
       throw new Error(data.message || 'An unexpected error occurred.');
     }
 

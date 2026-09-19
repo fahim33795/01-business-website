@@ -3,10 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Redirecting...</title>
+    <title>Syvora Beauty & Lifestyle</title>
     <script>
-      // Redirect to root index.html for SPA routing on GitHub Pages
-      window.location.href = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+      // Redirect to root with hash preserving route for SPA on GitHub Pages
+      (function() {
+        var pathSegments = window.location.pathname.split('/').filter(Boolean);
+        var baseDir = pathSegments.length > 0 ? '/' + pathSegments[0] + '/' : '/';
+        var page = pathSegments.length > 1 ? pathSegments[pathSegments.length - 1] : '';
+        if (page && page !== 'index.html') {
+          window.location.replace(baseDir + '#/' + page + window.location.search);
+        } else {
+          window.location.replace(baseDir);
+        }
+      })();
     </script>
   </head>
   <body>

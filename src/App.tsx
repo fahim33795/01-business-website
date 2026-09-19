@@ -25,8 +25,16 @@ import { Order } from './types';
 
 export const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<string>(() => {
-    if (window.location.hash === '#/admin' || window.location.pathname === '/admin') {
+    const hash = window.location.hash;
+    const pathname = window.location.pathname;
+    if (hash === '#/admin' || hash === '#admin' || pathname.endsWith('/admin')) {
       return 'admin';
+    }
+    if (hash === '#/shop' || hash === '#shop' || pathname.endsWith('/shop')) {
+      return 'shop';
+    }
+    if (hash === '#/account' || hash === '#account' || pathname.endsWith('/account')) {
+      return 'account';
     }
     return 'home';
   });
@@ -38,10 +46,14 @@ export const AppContent: React.FC = () => {
       const hash = window.location.hash;
       if (hash === '#/admin' || hash === '#admin') {
         setCurrentPage('admin');
-      } else if (hash === '#/shop') {
+      } else if (hash === '#/shop' || hash === '#shop') {
         setCurrentPage('shop');
-      } else if (hash === '#/account') {
+      } else if (hash === '#/account' || hash === '#account') {
         setCurrentPage('account');
+      } else if (hash === '#/wishlist' || hash === '#wishlist') {
+        setCurrentPage('wishlist');
+      } else if (hash === '#/tracking' || hash === '#tracking') {
+        setCurrentPage('tracking');
       } else if (hash === '' || hash === '#/' || hash === '#home') {
         setCurrentPage('home');
       }

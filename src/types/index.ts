@@ -82,13 +82,16 @@ export interface CartItem {
 export interface Coupon {
   id?: number;
   code: string;
-  discount_type: 'percent' | 'fixed';
-  discount_value: number;
+  type?: 'percent' | 'fixed';
+  discount_type?: 'percent' | 'fixed';
+  value?: number;
+  discount_value?: number;
   min_spend?: number;
   max_discount?: number;
   usage_limit?: number;
   used_count?: number;
   discountAmount?: number;
+  status?: string;
 }
 
 export interface OrderItem {

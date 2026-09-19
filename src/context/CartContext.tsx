@@ -155,13 +155,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   let discountAmount = 0;
   if (appliedCoupon) {
-    if (appliedCoupon.discount_type === 'percent') {
-      discountAmount = (subtotal * appliedCoupon.discount_value) / 100;
+    const couponType = appliedCoupon.discount_type || appliedCoupon.type || 'percent';
+    const couponValue = Number(appliedCoupon.discount_value ?? appliedCoupon.value ?? 0);
+
+    if (couponType === 'percent') {
+      discountAmount = (subtotal * couponValue) / 100;
       if (appliedCoupon.max_discount && discountAmount > appliedCoupon.max_discount) {
         discountAmount = appliedCoupon.max_discount;
       }
     } else {
-      discountAmount = appliedCoupon.discount_value;
+      discountAmount = couponValue;
     }
   }
 
